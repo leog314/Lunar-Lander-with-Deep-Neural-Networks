@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 import time
 
 fig, [ax, ax1] = plt.subplots(2, 1)
+# create plot
+
 data = []
 y = []
 losses = []
@@ -15,6 +17,7 @@ losses = []
 batch_size = 4
 all_steps = 0
 epochs = 2000
+# Hyperparameters for training
 
 env = gym.make(
     "LunarLander-v2",
@@ -30,9 +33,10 @@ class Memory:
     def push(self, state_, action_, nstate_, reward, done_):
         self.mem.append((state_, action_, nstate_,reward, done_))
         self.mem.pop(0) if len(self.mem) > self.cap else None
+        # pushes data into memory
 
     def sample(self, batch_size_):
-        return random.sample(self.mem, batch_size_)
+        return random.sample(self.mem, batch_size_) # returns a random sample
 
     def __len__(self):
         return len(self.mem)
@@ -50,25 +54,27 @@ class Agent(nn.Module):
             nn.Tanh(),
             nn.Linear(16, 4),
         )
+        # the Agents neural network
 
-        self.crit = nn.SmoothL1Loss()
-        self.optim = optimizer.Adam(self.parameters(), lr=0.003)
+        self.crit = nn.SmoothL1Loss() # loss function, either MSELoss or even better: SmoothL1Loss
+        self.optim = optimizer.Adam(self.parameters(), lr=0.003) 
         self.schedule = optimizer.lr_scheduler.PolynomialLR(self.optim, total_iters=10**6)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.logits(x)
 
 
 mem = Memory(2048)
 model = Agent()
-gamma = 0.95
+gamma = 0.95 # gamma > 0.9
 
 eps_start = 0.99
 eps_end = 0.05
 steps = 10000
 d = 0
 t = 1
-def get_action(in_state: torch.tensor):
+
+def get_action(in_state: torch.tensor) -> int:
     model.eval()
     global d
     global t
@@ -81,7 +87,7 @@ def get_action(in_state: torch.tensor):
     else:
         return random.randint(0, 3)
 
-def training():
+def training() -> float:
     model.train()
     model.optim.zero_grad(True)
 
@@ -164,5 +170,5 @@ for epoch in range(epochs):
     print(t, model.schedule.get_last_lr())
 
 plt.show()
-torch.save(model, "rl_model_f2.pt")
+# torch.save(model, "rl_model_f2.pt")
 env.close()
