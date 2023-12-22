@@ -124,7 +124,7 @@ for epoch in range(epochs):
         y = y[1:]
         losses = losses[1:]
 
-    obs = env.reset(seed=42)
+    obs = env.reset()
     state = torch.Tensor(obs[0])
     done = False
     env.render()
